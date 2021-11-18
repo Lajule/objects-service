@@ -16,17 +16,20 @@ import (
 )
 
 var (
+	// Flags
 	port    int
 	memory  bool
 	rootDir string
-	logger  *zap.Logger
-	afs     *afero.Afero
+
+	logger *zap.Logger
+
+	afs *afero.Afero
 )
 
 func init() {
 	flag.IntVar(&port, "p", 8080, "HTTP port")
-	flag.BoolVar(&memory, "m", false, "Store objects in memory")
-	flag.StringVar(&rootDir, "d", "./data", "Roor directory")
+	flag.BoolVar(&memory, "m", false, "Store objects in memory ?")
+	flag.StringVar(&rootDir, "d", "./data", "Object root directory")
 }
 
 func main() {
@@ -40,7 +43,7 @@ func main() {
 		zap.Bool("memory", memory),
 		zap.String("rootDir", rootDir))
 
-	afs = initFs()
+	afs = newFs()
 
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
@@ -55,10 +58,11 @@ func main() {
 
 	go func() {
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			logger.Fatal("listen", zap.Error(err))
+			logger.Fatal("listening", zap.Error(err))
 		}
 	}()
 
+	// Graceful shutdown
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit

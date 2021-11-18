@@ -5,7 +5,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func initFs() *afero.Afero {
+func newFs() *afero.Afero {
 	var fs afero.Fs
 	if memory {
 		fs = afero.NewMemMapFs()
