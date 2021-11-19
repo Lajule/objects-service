@@ -39,6 +39,7 @@ func createOrReplaceObject(c *gin.Context) {
 		return
 	}
 
+	defer object.Close()
 	if _, err := object.WriteString(string(data)); err != nil {
 		logger.Error("Can not write object", zap.Error(err))
 		c.Status(http.StatusInternalServerError)
@@ -60,21 +61,21 @@ func getObject(c *gin.Context) {
 		zap.String("bucket", bucket),
 		zap.String("objectID", objectID))
 
-	f, err := getObjectIfExists(filepath.Join(rootDir, bucket, objectID))
+	object, err := getObjectIfExists(filepath.Join(rootDir, bucket, objectID))
 	if err != nil {
 		logger.Error("Can not get object if exists", zap.Error(err))
 		c.Status(http.StatusInternalServerError)
 		return
 	}
 
-	if f == nil {
+	if object == nil {
 		logger.Info("Object not exists")
 		c.Status(http.StatusBadRequest)
 		return
 	}
 
-	defer f.Close()
-	data, err := io.ReadAll(f)
+	defer object.Close()
+	data, err := io.ReadAll(object)
 	if err != nil {
 		logger.Error("Can not read object", zap.Error(err))
 		c.Status(http.StatusInternalServerError)
