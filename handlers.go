@@ -3,7 +3,6 @@ package main
 import (
 	"io"
 	"net/http"
-	"path/filepath"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -26,13 +25,15 @@ func createOrReplaceObject(c *gin.Context) {
 		zap.String("objectID", objectID),
 		zap.ByteString("data", data))
 
-	if err := createBucketIfNotExists(filepath.Join(rootDir, bucket)); err != nil {
+	store := c.MustGet("store").(*store)
+
+	if err := store.createBucketIfNotExists(bucket); err != nil {
 		logger.Error("Can not create bucket if not exists", zap.Error(err))
 		c.Status(http.StatusInternalServerError)
 		return
 	}
 
-	object, err := createOrOpenObject(filepath.Join(rootDir, bucket, objectID))
+	object, err := store.createOrOpenObject(bucket, objectID)
 	if err != nil {
 		logger.Error("Can not create or open object", zap.Error(err))
 		c.Status(http.StatusInternalServerError)
@@ -47,9 +48,9 @@ func createOrReplaceObject(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, struct {
-		Id string
+		ID string `json:"id"`
 	}{
-		Id: objectID,
+		ID: objectID,
 	})
 }
 
@@ -61,7 +62,9 @@ func getObject(c *gin.Context) {
 		zap.String("bucket", bucket),
 		zap.String("objectID", objectID))
 
-	object, err := getObjectIfExists(filepath.Join(rootDir, bucket, objectID))
+	store := c.MustGet("store").(*store)
+
+	object, err := store.getObjectIfExists(bucket, objectID)
 	if err != nil {
 		logger.Error("Can not get object if exists", zap.Error(err))
 		c.Status(http.StatusInternalServerError)
@@ -93,7 +96,9 @@ func deleteObject(c *gin.Context) {
 		zap.String("bucket", bucket),
 		zap.String("objectID", objectID))
 
-	removed, err := removeObjectIfExists(filepath.Join(rootDir, bucket, objectID))
+	store := c.MustGet("store").(*store)
+
+	removed, err := store.removeObjectIfExists(bucket, objectID)
 	if err != nil {
 		logger.Error("Can not remove object if exists", zap.Error(err))
 		c.Status(http.StatusInternalServerError)

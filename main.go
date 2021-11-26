@@ -11,48 +11,40 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/spf13/afero"
 	"go.uber.org/zap"
 )
 
-var (
-	// Flags
-	port    int
-	memory  bool
-	rootDir string
-
-	logger *zap.Logger
-
-	afs *afero.Afero
-)
-
-func init() {
-	flag.IntVar(&port, "p", 8080, "HTTP port")
-	flag.BoolVar(&memory, "m", false, "Store objects in memory ?")
-	flag.StringVar(&rootDir, "d", "./data", "Object root directory")
-}
+var logger *zap.Logger
 
 func main() {
+	port := flag.Int("p", 8080, "HTTP port")
+	memory := flag.Bool("m", false, "Store objects in memory ?")
+	rootDir := flag.String("d", "./data", "Object root directory")
 	flag.Parse()
 
 	logger, _ = zap.NewProduction()
 	defer logger.Sync()
 
 	logger.Info("Starting service",
-		zap.Int("port", port),
-		zap.Bool("memory", memory),
-		zap.String("rootDir", rootDir))
+		zap.Int("port", *port),
+		zap.Bool("memory", *memory),
+		zap.String("rootDir", *rootDir))
 
-	afs = newFs()
+	store := newStore(*memory, *rootDir)
 
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
+
+	router.Use(func(c *gin.Context) {
+		c.Set("store", store)
+	})
+
 	router.PUT("/objects/:bucket/:objectID", createOrReplaceObject)
 	router.GET("/objects/:bucket/:objectID", getObject)
 	router.DELETE("/objects/:bucket/:objectID", deleteObject)
 
 	srv := &http.Server{
-		Addr:    fmt.Sprintf(":%d", port),
+		Addr:    fmt.Sprintf(":%d", *port),
 		Handler: router,
 	}
 
