@@ -9,17 +9,17 @@ import (
 )
 
 type Store struct {
+	rootDir string
 	afs     *afero.Afero
 	log     *zap.Logger
-	rootDir string
 }
 
-func NewStore(logger *zap.Logger, memory bool, rootDir string) *Store {
+func NewStore(rootDir string, memory bool, logger *zap.Logger) *Store {
 	var fs afero.Fs
 
 	logger.Info("Creating store",
-		zap.Bool("memory", memory),
-		zap.String("rootDir", rootDir))
+		zap.String("rootDir", rootDir),
+		zap.Bool("memory", memory))
 
 	if memory {
 		fs = afero.NewMemMapFs()
@@ -34,9 +34,9 @@ func NewStore(logger *zap.Logger, memory bool, rootDir string) *Store {
 	}
 
 	return &Store{
+		rootDir: rootDir,
 		afs:     &afero.Afero{Fs: fs},
 		log:     logger.Named("store"),
-		rootDir: rootDir,
 	}
 }
 

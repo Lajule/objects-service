@@ -17,18 +17,18 @@ import (
 )
 
 type Service struct {
-	log   *zap.Logger
-	store *store.Store
 	srv   *http.Server
+	store *store.Store
+	log   *zap.Logger
 }
 
-func NewService(logger *zap.Logger, st *store.Store, port int) *Service {
-	logger.Info("Starting service",
+func NewService(port int, st *store.Store, logger *zap.Logger) *Service {
+	logger.Info("Creating service",
 		zap.Int("port", port))
 
 	service := &Service{
-		log:   logger.Named("service"),
 		store: st,
+		log:   logger.Named("service"),
 	}
 
 	gin.SetMode(gin.ReleaseMode)
@@ -51,13 +51,14 @@ func NewService(logger *zap.Logger, st *store.Store, port int) *Service {
 }
 
 func (s *Service) Start() {
+	s.log.Info("Service starting")
+
 	go func() {
 		if err := s.srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			s.log.Fatal("Service not listening", zap.Error(err))
 		}
 	}()
 
-	// Graceful shutdown
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
@@ -73,10 +74,10 @@ func (s *Service) Start() {
 }
 
 func createOrReplaceObject(c *gin.Context) {
+	s := c.MustGet("service").(*Service)
+
 	bucket := c.Param("bucket")
 	objectID := c.Param("objectID")
-
-	s := c.MustGet("service").(*Service)
 
 	defer c.Request.Body.Close()
 	data, err := io.ReadAll(c.Request.Body)
@@ -119,10 +120,10 @@ func createOrReplaceObject(c *gin.Context) {
 }
 
 func getObject(c *gin.Context) {
+	s := c.MustGet("service").(*Service)
+
 	bucket := c.Param("bucket")
 	objectID := c.Param("objectID")
-
-	s := c.MustGet("service").(*Service)
 
 	s.log.Info("Getting object",
 		zap.String("bucket", bucket),
@@ -153,10 +154,10 @@ func getObject(c *gin.Context) {
 }
 
 func deleteObject(c *gin.Context) {
+	s := c.MustGet("service").(*Service)
+
 	bucket := c.Param("bucket")
 	objectID := c.Param("objectID")
-
-	s := c.MustGet("service").(*Service)
 
 	s.log.Info("Deleting object",
 		zap.String("bucket", bucket),
