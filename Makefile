@@ -1,13 +1,15 @@
 NAME := objects-service
 PACKAGE := github.com/Lajule/objects-service
 VERSION := 0.0.1
+MAIN := .
+
 TARGETS := all run debug watch generate tidy test vet lint format clean bootstrap dist
 
 all:
-	go build -ldflags="-s -X 'main.Version=$(VERSION)'" -tags "$(GOTAGS)" -o $(NAME) .
+	go build -ldflags="-s -X 'main.Version=$(VERSION)'" -tags "$(GOTAGS)" -o $(NAME) $(MAIN)
 
 run:
-	go run -tags "$(GOTAGS)" .
+	go run -tags "$(GOTAGS)" $(MAIN)
 
 debug:
 	dlv debug --build-flags "-tags '$(GOTAGS)'" $(PACKAGE)
