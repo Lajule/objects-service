@@ -23,27 +23,29 @@ type Service struct {
 }
 
 func NewService(logger *zap.Logger, st *store.Store, port int) *Service {
-	log := logger.Named("service")
+	logger.Info("Starting service",
+		zap.Int("port", port))
+
+	service := &Service{
+		log:   logger.Named("service"),
+		store: st,
+	}
 
 	gin.SetMode(gin.ReleaseMode)
 	engine := gin.New()
+
+	engine.Use(func(c *gin.Context) {
+		c.Set("service", service)
+	})
 
 	engine.PUT("/objects/:bucket/:objectID", createOrReplaceObject)
 	engine.GET("/objects/:bucket/:objectID", getObject)
 	engine.DELETE("/objects/:bucket/:objectID", deleteObject)
 
-	service := &Service{
-		log:   log,
-		store: st,
-		srv: &http.Server{
-			Addr:    fmt.Sprintf(":%d", port),
-			Handler: engine,
-		},
+	service.srv = &http.Server{
+		Addr:    fmt.Sprintf(":%d", port),
+		Handler: engine,
 	}
-
-	engine.Use(func(c *gin.Context) {
-		c.Set("service", service)
-	})
 
 	return service
 }

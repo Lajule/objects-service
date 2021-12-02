@@ -17,6 +17,10 @@ type Store struct {
 func NewStore(logger *zap.Logger, memory bool, rootDir string) *Store {
 	var fs afero.Fs
 
+	logger.Info("Creating store",
+		zap.Bool("memory", memory),
+		zap.String("rootDir", rootDir))
+
 	if memory {
 		fs = afero.NewMemMapFs()
 	} else {
