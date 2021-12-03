@@ -14,9 +14,9 @@ var Version = "development"
 func main() {
 	rootDir := flag.String("d", "./data", "Object root directory")
 	memory := flag.Bool("m", false, "Store objects in memory ?")
-	addr := flag.String("a", ":8080", "TCP address")
-	certFile := flag.String("c", "", "Certificate")
-	keyFile := flag.String("k", "", "Private key")
+	addr := flag.String("addr", ":8080", "TCP address")
+	certFile := flag.String("cert", "", "File that contains X.509 certificate")
+	keyFile := flag.String("key", "", "File that contains X.509 key")
 	flag.Parse()
 
 	logger, _ := zap.NewProduction()

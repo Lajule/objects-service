@@ -17,14 +17,14 @@ go build
 ```
 ./objects-service -h
 Usage of ./objects-service:
-  -a string
+  -addr string
     	TCP address (default ":8080")
-  -c string
-    	Certificate
+  -cert string
+    	File that contains X.509 certificate
   -d string
     	Object root directory (default "./data")
-  -k string
-    	Private key
+  -key string
+    	File that contains X.509 key
   -m	Store objects in memory ?
 ```
 
