@@ -1,4 +1,5 @@
-all run debug watch generate tidy test vet lint format clean bootstrap dist:
-	$(MAKE) -C .. $@
+TARGETS := all run debug watch generate tidy test vet lint format clean bootstrap dist
 
-.PHONY = all run debug watch generate tidy test vet lint format clean bootstrap dist
+$(TARGETS):
+	$(MAKE) -C .. $@
+.PHONY: $(TARGETS)
