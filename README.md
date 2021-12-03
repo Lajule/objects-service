@@ -17,11 +17,15 @@ go build
 ```
 ./objects-service -h
 Usage of ./objects-service:
+  -a string
+    	TCP address (default ":8080")
+  -c string
+    	Certificate
   -d string
-        Object root directory (default "./data")
-  -m    Store objects in memory ?
-  -p int
-        HTTP port (default 8080)
+    	Object root directory (default "./data")
+  -k string
+    	Private key
+  -m	Store objects in memory ?
 ```
 
 [1]: https://github.com/gin-gonic/gin
