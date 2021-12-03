@@ -9,16 +9,16 @@ import (
 )
 
 type Store struct {
-	rootDir string
-	afs     *afero.Afero
-	log     *zap.Logger
+	basePath string
+	afs      *afero.Afero
+	log      *zap.Logger
 }
 
-func NewStore(rootDir string, memory bool, logger *zap.Logger) *Store {
+func NewStore(basePath string, memory bool, logger *zap.Logger) *Store {
 	var fs afero.Fs
 
 	logger.Info("Creating store",
-		zap.String("rootDir", rootDir),
+		zap.String("basePath", basePath),
 		zap.Bool("memory", memory))
 
 	if memory {
@@ -27,21 +27,21 @@ func NewStore(rootDir string, memory bool, logger *zap.Logger) *Store {
 		fs = afero.NewOsFs()
 	}
 
-	if err := fs.MkdirAll(rootDir, 0755); err != nil {
-		logger.Fatal("Can not create root directory",
-			zap.String("rootDir", rootDir),
+	if err := fs.MkdirAll(basePath, 0755); err != nil {
+		logger.Fatal("Can not create base path",
+			zap.String("basePath", basePath),
 			zap.Error(err))
 	}
 
 	return &Store{
-		rootDir: rootDir,
-		afs:     &afero.Afero{Fs: fs},
-		log:     logger.Named("store"),
+		basePath: basePath,
+		afs:      &afero.Afero{Fs: fs},
+		log:      logger.Named("store"),
 	}
 }
 
 func (s *Store) CreateBucketIfNotExists(bucket string) error {
-	bucketPath := filepath.Join(s.rootDir, bucket)
+	bucketPath := filepath.Join(s.basePath, bucket)
 
 	bucketExists, err := s.afs.Exists(bucketPath)
 	if err != nil {
@@ -62,7 +62,7 @@ func (s *Store) CreateBucketIfNotExists(bucket string) error {
 }
 
 func (s *Store) CreateOrOpenObject(bucket, objectID string) (afero.File, error) {
-	objectPath := filepath.Join(s.rootDir, bucket, objectID)
+	objectPath := filepath.Join(s.basePath, bucket, objectID)
 
 	objectExists, err := s.afs.Exists(objectPath)
 	if err != nil {
@@ -90,7 +90,7 @@ func (s *Store) CreateOrOpenObject(bucket, objectID string) (afero.File, error) 
 }
 
 func (s *Store) GetObjectIfExists(bucket, objectID string) (afero.File, error) {
-	objectPath := filepath.Join(s.rootDir, bucket, objectID)
+	objectPath := filepath.Join(s.basePath, bucket, objectID)
 
 	objectExists, err := s.afs.Exists(objectPath)
 	if err != nil {
@@ -112,7 +112,7 @@ func (s *Store) GetObjectIfExists(bucket, objectID string) (afero.File, error) {
 }
 
 func (s *Store) RemoveObjectIfExists(bucket, objectID string) (bool, error) {
-	objectPath := filepath.Join(s.rootDir, bucket, objectID)
+	objectPath := filepath.Join(s.basePath, bucket, objectID)
 
 	objectExists, err := s.afs.Exists(objectPath)
 	if err != nil {

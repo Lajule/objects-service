@@ -1,9 +1,11 @@
 package main
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"flag"
 	"net"
-	"crypto/tls"
+	"os"
 
 	"go.uber.org/zap"
 )
@@ -12,11 +14,12 @@ import (
 var Version = "development"
 
 func main() {
-	rootDir := flag.String("d", "./data", "Object root directory")
-	memory := flag.Bool("m", false, "Store objects in memory ?")
+	basePath := flag.String("b", "./data", "Store base path")
+	memory := flag.Bool("m", false, "Use memory backed filesystem")
 	addr := flag.String("addr", ":8080", "TCP address")
-	certFile := flag.String("cert", "", "File that contains X.509 certificate")
-	keyFile := flag.String("key", "", "File that contains X.509 key")
+	caCert := flag.String("ca-cert", "", "File that contains list of trusted SSL Certificate Authorities")
+	clientCert := flag.String("client-cert", "", "File that contains X.509 certificate")
+	clientKey := flag.String("client-key", "", "File that contains X.509 key")
 	flag.Parse()
 
 	logger, _ := zap.NewProduction()
@@ -30,15 +33,35 @@ func main() {
 	}
 
 	var tlsConfig *tls.Config
-	if *certFile != "" && *keyFile != "" {
-		tlsConfig = &tls.Config{}
-		tlsConfig.Certificates = make([]tls.Certificate, 1)
-		tlsConfig.Certificates[0], err = tls.LoadX509KeyPair(*certFile, *keyFile)
+	var pool *x509.CertPool
+
+	if *clientCert != "" && *clientKey != "" {
+		if *caCert != "" {
+			pool = x509.NewCertPool()
+
+			data, err := os.ReadFile(*caCert)
+			if err != nil {
+				logger.Fatal(err.Error())
+			}
+
+			if !pool.AppendCertsFromPEM(data) {
+				logger.Fatal("failed to parse CA certificate")
+			}
+		}
+
+		cert, err := tls.LoadX509KeyPair(*clientCert, *clientKey)
 		if err != nil {
 			logger.Fatal(err.Error())
 		}
+
+		tlsConfig = &tls.Config{
+			RootCAs:      pool,
+			ClientAuth:   tls.RequireAndVerifyClientCert,
+			MinVersion:   tls.VersionTLS12,
+			Certificates: []tls.Certificate{cert},
+		}
 	}
 
-	srv := InitializeService(*rootDir, *memory, tcpAddr, tlsConfig, logger)
+	srv := InitializeService(*basePath, *memory, tcpAddr, tlsConfig, logger)
 	srv.Start()
 }

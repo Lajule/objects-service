@@ -14,7 +14,7 @@ import (
 	"github.com/Lajule/objects-service/pkg/store"
 )
 
-func InitializeService(rootDir string, memory bool, tcpAddr *net.TCPAddr, tlsConfig *tls.Config, logger *zap.Logger) *service.Service {
+func InitializeService(basePath string, memory bool, tcpAddr *net.TCPAddr, tlsConfig *tls.Config, logger *zap.Logger) *service.Service {
 	wire.Build(store.NewStore, service.NewService)
 	return &service.Service{}
 }
