@@ -6,15 +6,17 @@
 package main
 
 import (
+	"crypto/tls"
 	"github.com/Lajule/objects-service/pkg/service"
 	"github.com/Lajule/objects-service/pkg/store"
 	"go.uber.org/zap"
+	"net"
 )
 
 // Injectors from wire.go:
 
-func InitializeService(rootDir string, memory bool, port int, logger *zap.Logger) *service.Service {
+func InitializeService(rootDir string, memory bool, tcpAddr *net.TCPAddr, tlsConfig *tls.Config, logger *zap.Logger) *service.Service {
 	storeStore := store.NewStore(rootDir, memory, logger)
-	serviceService := service.NewService(port, storeStore, logger)
+	serviceService := service.NewService(tcpAddr, tlsConfig, storeStore, logger)
 	return serviceService
 }

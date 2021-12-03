@@ -2,8 +2,9 @@ package service
 
 import (
 	"context"
-	"fmt"
+	"crypto/tls"
 	"io"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -16,15 +17,17 @@ import (
 	"github.com/Lajule/objects-service/pkg/store"
 )
 
+// Service contains an HTTP server and a store
 type Service struct {
 	srv   *http.Server
 	store *store.Store
 	log   *zap.Logger
 }
 
-func NewService(port int, st *store.Store, logger *zap.Logger) *Service {
+// NewService creates a new service
+func NewService(tcpAddr *net.TCPAddr, tlsConfig *tls.Config, st *store.Store, logger *zap.Logger) *Service {
 	logger.Info("Creating service",
-		zap.Int("port", port))
+		zap.String("address", tcpAddr.String()))
 
 	service := &Service{
 		store: st,
@@ -43,8 +46,9 @@ func NewService(port int, st *store.Store, logger *zap.Logger) *Service {
 	engine.DELETE("/objects/:bucket/:objectID", deleteObject)
 
 	service.srv = &http.Server{
-		Addr:    fmt.Sprintf(":%d", port),
-		Handler: engine,
+		Addr:      tcpAddr.String(),
+		Handler:   engine,
+		TLSConfig: tlsConfig,
 	}
 
 	return service
@@ -54,7 +58,13 @@ func (s *Service) Start() {
 	s.log.Info("Service starting")
 
 	go func() {
-		if err := s.srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		var err error
+		if s.srv.TLSConfig != nil {
+			err = s.srv.ListenAndServeTLS("", "")
+		} else {
+			err = s.srv.ListenAndServe()
+		}
+		if err != nil && err != http.ErrServerClosed {
 			s.log.Fatal("Service not listening", zap.Error(err))
 		}
 	}()

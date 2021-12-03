@@ -4,6 +4,9 @@
 package main
 
 import (
+	"crypto/tls"
+	"net"
+
 	"github.com/google/wire"
 	"go.uber.org/zap"
 
@@ -11,7 +14,7 @@ import (
 	"github.com/Lajule/objects-service/pkg/store"
 )
 
-func InitializeService(rootDir string, memory bool, port int, logger *zap.Logger) *service.Service {
+func InitializeService(rootDir string, memory bool, tcpAddr *net.TCPAddr, tlsConfig *tls.Config, logger *zap.Logger) *service.Service {
 	wire.Build(store.NewStore, service.NewService)
 	return &service.Service{}
 }

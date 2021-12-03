@@ -2,6 +2,8 @@ package main
 
 import (
 	"flag"
+	"net"
+	"crypto/tls"
 
 	"go.uber.org/zap"
 )
@@ -12,7 +14,9 @@ var Version = "development"
 func main() {
 	rootDir := flag.String("d", "./data", "Object root directory")
 	memory := flag.Bool("m", false, "Store objects in memory ?")
-	port := flag.Int("p", 8080, "HTTP port")
+	addr := flag.String("a", ":8080", "TCP address")
+	certFile := flag.String("c", "", "Certificate")
+	keyFile := flag.String("k", "", "Private key")
 	flag.Parse()
 
 	logger, _ := zap.NewProduction()
@@ -20,6 +24,21 @@ func main() {
 
 	logger.Info("objects-service", zap.String("version", Version))
 
-	srv := InitializeService(*rootDir, *memory, *port, logger)
+	tcpAddr, err := net.ResolveTCPAddr("tcp", *addr)
+	if err != nil {
+		logger.Fatal(err.Error())
+	}
+
+	var tlsConfig *tls.Config
+	if *certFile != "" && *keyFile != "" {
+		tlsConfig = &tls.Config{}
+		tlsConfig.Certificates = make([]tls.Certificate, 1)
+		tlsConfig.Certificates[0], err = tls.LoadX509KeyPair(*certFile, *keyFile)
+		if err != nil {
+			logger.Fatal(err.Error())
+		}
+	}
+
+	srv := InitializeService(*rootDir, *memory, tcpAddr, tlsConfig, logger)
 	srv.Start()
 }
