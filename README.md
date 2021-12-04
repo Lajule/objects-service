@@ -17,17 +17,18 @@ go build
 ```
 ./objects-service -h
 Usage of ./objects-service:
-  -addr string
-        TCP address (default ":8080")
-  -b string
+  -base-path string
         Store base path (default "./data")
+  -bind-addr string
+        Use specified network interface (default ":8080")
   -ca-cert string
         File that contains list of trusted SSL Certificate Authorities
   -client-cert string
         File that contains X.509 certificate
   -client-key string
         File that contains X.509 key
-  -m    Use memory backed filesystem
+  -mem-map-fs
+        Use memory backed filesystem
 ```
 
 [1]: https://github.com/gin-gonic/gin
