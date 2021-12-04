@@ -18,7 +18,7 @@ go build
 ./objects-service -h
 Usage of ./objects-service:
   -base-path string
-        Store base path (default "./data")
+        Directory that contains buckets (default "./data")
   -bind-addr string
         Use specified network interface (default ":8080")
   -ca-cert string
