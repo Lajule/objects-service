@@ -16,8 +16,8 @@ import (
 
 // Injectors from wire.go:
 
-func InitializeService(basePath string, memory bool, tcpAddr *net.TCPAddr, tlsConfig *tls.Config, logger *zap.Logger) *service.Service {
-	storeStore := store.NewStore(basePath, memory, logger)
+func InitializeService(basePath string, memMapFs bool, tcpAddr *net.TCPAddr, tlsConfig *tls.Config, logger *zap.Logger) *service.Service {
+	storeStore := store.NewStore(basePath, memMapFs, logger)
 	serviceService := service.NewService(tcpAddr, tlsConfig, storeStore, logger)
 	return serviceService
 }

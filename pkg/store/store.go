@@ -14,14 +14,14 @@ type Store struct {
 	log      *zap.Logger
 }
 
-func NewStore(basePath string, memory bool, logger *zap.Logger) *Store {
+func NewStore(basePath string, memMapFs bool, logger *zap.Logger) *Store {
 	var fs afero.Fs
 
 	logger.Info("Creating store",
 		zap.String("basePath", basePath),
-		zap.Bool("memory", memory))
+		zap.Bool("memMapFs", memMapFs))
 
-	if memory {
+	if memMapFs {
 		fs = afero.NewMemMapFs()
 	} else {
 		fs = afero.NewOsFs()

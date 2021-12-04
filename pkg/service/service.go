@@ -54,13 +54,13 @@ func NewService(tcpAddr *net.TCPAddr, tlsConfig *tls.Config, st *store.Store, lo
 	return service
 }
 
-func (s *Service) Start() {
+func (s *Service) Start(clientCert, clientKey string) {
 	s.log.Info("Service starting")
 
 	go func() {
 		var err error
-		if s.srv.TLSConfig != nil {
-			err = s.srv.ListenAndServeTLS("", "")
+		if len(clientCert) > 0 && len(clientKey) > 0 {
+			err = s.srv.ListenAndServeTLS(clientCert, clientKey)
 		} else {
 			err = s.srv.ListenAndServe()
 		}
