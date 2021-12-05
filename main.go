@@ -34,7 +34,7 @@ func main() {
 
 	var tlsConfig *tls.Config
 
-	if *caCert != "" {
+	if len(*caCert) > 0 {
 		pool := x509.NewCertPool()
 
 		data, err := os.ReadFile(*caCert)
