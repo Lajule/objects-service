@@ -17,5 +17,5 @@
 # Binary
 objects-service
 
-# Root directory
-data/
+# Air temp directory
+tmp/

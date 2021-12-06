@@ -2,8 +2,8 @@ root = "."
 tmp_dir = "tmp"
 
 [build]
-  bin = "./objects-service"
-  cmd = "make"
+  bin = "./tmp/objects-service"
+  cmd = "go build -o ./tmp/objects-service"
   delay = 1000
   exclude_dir = ["assets", "data", "tmp", "vendor"]
   exclude_file = []
