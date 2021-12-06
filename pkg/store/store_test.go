@@ -15,6 +15,18 @@ func TestCreateBucketIfNotExists(t *testing.T) {
 	st := store.NewStore("test", true, logger)
 
 	if err := st.CreateBucketIfNotExists("bucket"); err != nil {
-		t.Errorf("CreateBucketIfNotExists(\"bucket\") = %#v ", err)
+		t.Errorf("CreateBucketIfNotExists(\"bucket\") = %#v", err)
+	}
+}
+
+func TestCreateOrOpenObject(t *testing.T) {
+	logger, _ := zap.NewProduction()
+	defer logger.Sync()
+
+	st := store.NewStore("test", true, logger)
+
+	_, err := st.CreateOrOpenObject("bucket", "object")
+	if err != nil {
+		t.Errorf("CreateOrOpenObject(\"bucket\", \"object\") = %#v", err)
 	}
 }

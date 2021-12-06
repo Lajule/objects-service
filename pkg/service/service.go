@@ -54,6 +54,7 @@ func NewService(tcpAddr *net.TCPAddr, tlsConfig *tls.Config, st *store.Store, lo
 	return service
 }
 
+// Start starts HTTP service
 func (s *Service) Start(clientCert, clientKey string) {
 	s.log.Info("Service starting")
 

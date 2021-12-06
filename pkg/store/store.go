@@ -8,12 +8,14 @@ import (
 	"go.uber.org/zap"
 )
 
+// Store contains file system abstraction
 type Store struct {
 	basePath string
 	afs      *afero.Afero
 	log      *zap.Logger
 }
 
+// NewStore creates a new store
 func NewStore(basePath string, memMapFs bool, logger *zap.Logger) *Store {
 	var fs afero.Fs
 
@@ -40,6 +42,7 @@ func NewStore(basePath string, memMapFs bool, logger *zap.Logger) *Store {
 	}
 }
 
+// CreateBucketIfNotExists creates a bucket
 func (s *Store) CreateBucketIfNotExists(bucket string) error {
 	bucketPath := filepath.Join(s.basePath, bucket)
 
@@ -61,6 +64,7 @@ func (s *Store) CreateBucketIfNotExists(bucket string) error {
 	return nil
 }
 
+// CreateOrOpenObject creates an object
 func (s *Store) CreateOrOpenObject(bucket, objectID string) (afero.File, error) {
 	objectPath := filepath.Join(s.basePath, bucket, objectID)
 
@@ -89,6 +93,7 @@ func (s *Store) CreateOrOpenObject(bucket, objectID string) (afero.File, error) 
 	return f, nil
 }
 
+// GetObjectIfExists get an object
 func (s *Store) GetObjectIfExists(bucket, objectID string) (afero.File, error) {
 	objectPath := filepath.Join(s.basePath, bucket, objectID)
 
@@ -111,6 +116,7 @@ func (s *Store) GetObjectIfExists(bucket, objectID string) (afero.File, error) {
 	return f, nil
 }
 
+// RemoveObjectIfExists deletes an object
 func (s *Store) RemoveObjectIfExists(bucket, objectID string) (bool, error) {
 	objectPath := filepath.Join(s.basePath, bucket, objectID)
 
