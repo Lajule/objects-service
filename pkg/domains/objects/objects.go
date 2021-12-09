@@ -112,7 +112,7 @@ func Delete(c *gin.Context) {
 
 	if !removed {
 		s.Logger.Info("Object not exists")
-		c.Status(http.StatusBadRequest)
+		c.Status(http.StatusNotFound)
 		return
 	}
 

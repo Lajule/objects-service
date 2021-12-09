@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"reflect"
 	"syscall"
 	"time"
 
@@ -18,9 +19,9 @@ import (
 
 // Route contains a HTTP method, a path and a handler function
 type Route struct {
-	Path        string
-	Method      string
-	HandlerFunc gin.HandlerFunc
+	Path         string
+	Method       string
+	HandlerFuncs []gin.HandlerFunc
 }
 
 // Service contains an HTTP server and a store
@@ -51,23 +52,18 @@ func New(tcpAddr *net.TCPAddr, tlsConfig *tls.Config, routes []*Route, st *store
 		c.Set("service", service)
 	})
 
-	for _, v := range routes {
-		switch v.Method {
-		case http.MethodGet:
-			engine.GET(v.Path, v.HandlerFunc)
-		case http.MethodPost:
-			engine.POST(v.Path, v.HandlerFunc)
-		case http.MethodPut:
-			engine.PUT(v.Path, v.HandlerFunc)
-		case http.MethodPatch:
-			engine.PATCH(v.Path, v.HandlerFunc)
-		case http.MethodDelete:
-			engine.DELETE(v.Path, v.HandlerFunc)
-		case http.MethodOptions:
-			engine.OPTIONS(v.Path, v.HandlerFunc)
-		case http.MethodHead:
-			engine.HEAD(v.Path, v.HandlerFunc)
+	value := reflect.ValueOf(engine)
+	for _, route := range routes {
+		in := []reflect.Value{
+			reflect.ValueOf(route.Path),
 		}
+
+		for _, handlerFunc := range route.HandlerFuncs {
+			in = append(in, reflect.ValueOf(handlerFunc))
+		}
+
+		f := value.MethodByName(route.Method)
+		f.Call(in)
 	}
 
 	service.srv = &http.Server{
