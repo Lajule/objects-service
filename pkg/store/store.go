@@ -12,11 +12,11 @@ import (
 type Store struct {
 	basePath string
 	afs      *afero.Afero
-	log      *zap.Logger
+	logger   *zap.Logger
 }
 
-// NewStore creates a new store
-func NewStore(basePath string, memMapFs bool, logger *zap.Logger) *Store {
+// New creates a new store
+func New(basePath string, memMapFs bool, logger *zap.Logger) *Store {
 	var fs afero.Fs
 
 	logger.Info("Creating store",
@@ -38,7 +38,7 @@ func NewStore(basePath string, memMapFs bool, logger *zap.Logger) *Store {
 	return &Store{
 		basePath: basePath,
 		afs:      &afero.Afero{Fs: fs},
-		log:      logger.Named("store"),
+		logger:   logger.Named("store"),
 	}
 }
 
@@ -48,13 +48,13 @@ func (s *Store) CreateBucketIfNotExists(bucket string) error {
 
 	bucketExists, err := s.afs.Exists(bucketPath)
 	if err != nil {
-		s.log.Error("Can not check if bucket exists", zap.Error(err))
+		s.logger.Error("Can not check if bucket exists", zap.Error(err))
 		return err
 	}
 
 	if !bucketExists {
 		if err := s.afs.MkdirAll(bucketPath, 0755); err != nil {
-			s.log.Fatal("Can not create bucket",
+			s.logger.Fatal("Can not create bucket",
 				zap.String("bucketPath", bucketPath),
 				zap.Error(err))
 			return err
@@ -70,7 +70,7 @@ func (s *Store) CreateOrOpenObject(bucket, objectID string) (afero.File, error) 
 
 	objectExists, err := s.afs.Exists(objectPath)
 	if err != nil {
-		s.log.Error("Can not check if object exists", zap.Error(err))
+		s.logger.Error("Can not check if object exists", zap.Error(err))
 		return nil, err
 	}
 
@@ -79,13 +79,13 @@ func (s *Store) CreateOrOpenObject(bucket, objectID string) (afero.File, error) 
 	if objectExists {
 		f, err = s.afs.OpenFile(objectPath, os.O_RDWR|os.O_CREATE, 0755)
 		if err != nil {
-			s.log.Error("Can not open object", zap.Error(err))
+			s.logger.Error("Can not open object", zap.Error(err))
 			return nil, err
 		}
 	} else {
 		f, err = s.afs.Create(objectPath)
 		if err != nil {
-			s.log.Error("Can not create object", zap.Error(err))
+			s.logger.Error("Can not create object", zap.Error(err))
 			return nil, err
 		}
 	}
@@ -99,7 +99,7 @@ func (s *Store) GetObjectIfExists(bucket, objectID string) (afero.File, error) {
 
 	objectExists, err := s.afs.Exists(objectPath)
 	if err != nil {
-		s.log.Error("Can not check if object exists", zap.Error(err))
+		s.logger.Error("Can not check if object exists", zap.Error(err))
 		return nil, err
 	}
 
@@ -109,7 +109,7 @@ func (s *Store) GetObjectIfExists(bucket, objectID string) (afero.File, error) {
 
 	f, err := s.afs.Open(objectPath)
 	if err != nil {
-		s.log.Error("Can not open object", zap.Error(err))
+		s.logger.Error("Can not open object", zap.Error(err))
 		return nil, err
 	}
 
@@ -122,7 +122,7 @@ func (s *Store) RemoveObjectIfExists(bucket, objectID string) (bool, error) {
 
 	objectExists, err := s.afs.Exists(objectPath)
 	if err != nil {
-		s.log.Error("Can not check if object exists", zap.Error(err))
+		s.logger.Error("Can not check if object exists", zap.Error(err))
 		return false, err
 	}
 
@@ -131,7 +131,7 @@ func (s *Store) RemoveObjectIfExists(bucket, objectID string) (bool, error) {
 	}
 
 	if err := s.afs.Remove(objectPath); err != nil {
-		s.log.Error("Can remove object", zap.Error(err))
+		s.logger.Error("Can remove object", zap.Error(err))
 		return false, err
 	}
 
