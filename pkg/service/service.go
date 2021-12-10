@@ -17,10 +17,24 @@ import (
 	"github.com/Lajule/objects-service/pkg/store"
 )
 
+// Group is router group
+type Group struct {
+	// Name is the name of router group
+	Name string
+
+	// Routes is the list of routes
+	Routes []*Route
+}
+
 // Route contains a HTTP method, a path and a handler function
 type Route struct {
-	Path         string
-	Method       string
+	// Path
+	Path string
+
+	// Method
+	Method string
+
+	// HandlerFuncs
 	HandlerFuncs []gin.HandlerFunc
 }
 
@@ -36,7 +50,7 @@ type Service struct {
 }
 
 // New creates a new service
-func New(tcpAddr *net.TCPAddr, tlsConfig *tls.Config, routes []*Route, st *store.Store, logger *zap.Logger) *Service {
+func New(tcpAddr *net.TCPAddr, tlsConfig *tls.Config, groups []*Group, st *store.Store, logger *zap.Logger) *Service {
 	logger.Info("Creating service",
 		zap.String("address", tcpAddr.String()))
 
@@ -52,18 +66,20 @@ func New(tcpAddr *net.TCPAddr, tlsConfig *tls.Config, routes []*Route, st *store
 		c.Set("service", service)
 	})
 
-	value := reflect.ValueOf(engine)
-	for _, route := range routes {
-		in := []reflect.Value{
-			reflect.ValueOf(route.Path),
-		}
+	for _, group := range groups {
+		value := reflect.ValueOf(engine.Group(group.Name))
+		for _, route := range group.Routes {
+			in := []reflect.Value{
+				reflect.ValueOf(route.Path),
+			}
 
-		for _, handlerFunc := range route.HandlerFuncs {
-			in = append(in, reflect.ValueOf(handlerFunc))
-		}
+			for _, handlerFunc := range route.HandlerFuncs {
+				in = append(in, reflect.ValueOf(handlerFunc))
+			}
 
-		f := value.MethodByName(route.Method)
-		f.Call(in)
+			f := value.MethodByName(route.Method)
+			f.Call(in)
+		}
 	}
 
 	service.srv = &http.Server{

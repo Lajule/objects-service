@@ -10,8 +10,29 @@ import (
 	"github.com/Lajule/objects-service/pkg/service"
 )
 
-// CreateOrReplace creates or replaces an object
-func CreateOrReplace(c *gin.Context) {
+// Group defines the current group
+var Group = &service.Group{
+	Name: "/objects",
+	Routes: []*service.Route{
+		&service.Route{
+			Path:         "/:bucket/:objectID",
+			Method:       http.MethodPut,
+			HandlerFuncs: []gin.HandlerFunc{createOrReplace},
+		},
+		&service.Route{
+			Path:         "/:bucket/:objectID",
+			Method:       http.MethodGet,
+			HandlerFuncs: []gin.HandlerFunc{get},
+		},
+		&service.Route{
+			Path:         "/:bucket/:objectID",
+			Method:       http.MethodDelete,
+			HandlerFuncs: []gin.HandlerFunc{deleteObject},
+		},
+	},
+}
+
+func createOrReplace(c *gin.Context) {
 	s := c.MustGet("service").(*service.Service)
 
 	bucket := c.Param("bucket")
@@ -57,8 +78,7 @@ func CreateOrReplace(c *gin.Context) {
 	})
 }
 
-// Get get an object
-func Get(c *gin.Context) {
+func get(c *gin.Context) {
 	s := c.MustGet("service").(*service.Service)
 
 	bucket := c.Param("bucket")
@@ -92,8 +112,7 @@ func Get(c *gin.Context) {
 	c.String(http.StatusOK, string(data))
 }
 
-// Delete deletes an object
-func Delete(c *gin.Context) {
+func deleteObject(c *gin.Context) {
 	s := c.MustGet("service").(*service.Service)
 
 	bucket := c.Param("bucket")
