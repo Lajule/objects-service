@@ -41,7 +41,7 @@ func main() {
 
 	logger.Info("objects-service", zap.String("version", Version))
 
-	tcpAddr, err := net.ResolveTCPAddr("tcp", *BasePath)
+	tcpAddr, err := net.ResolveTCPAddr("tcp", *BindAddr)
 	if err != nil {
 		logger.Fatal(err.Error())
 	}
