@@ -33,7 +33,6 @@ var (
 	ClientKey = flag.String("client-key", "", "File that contains X.509 key")
 )
 
-
 func main() {
 	flag.Parse()
 

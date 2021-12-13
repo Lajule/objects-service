@@ -28,13 +28,13 @@ type Group struct {
 
 // Route contains a HTTP method, a path and a handler function
 type Route struct {
-	// Path
+	// Path is the API endpoint
 	Path string
 
-	// Method
+	// Method is the HTTP method of the route
 	Method string
 
-	// HandlerFuncs
+	// HandlerFuncs is the function that handles the request
 	HandlerFuncs []gin.HandlerFunc
 }
 
