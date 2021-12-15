@@ -1,17 +1,21 @@
 package groups
 
 import (
+	"github.com/google/wire"
 	"go.uber.org/zap"
 
 	"github.com/Lajule/objects-service/pkg/groups/objects"
 	"github.com/Lajule/objects-service/pkg/service"
 )
 
+// Set is used by wire
+var Set = wire.NewSet(objects.New)
+
 // New creates all groups
-func New(logger *zap.Logger) []*service.Group {
+func New(objectsGroup *objects.Group, logger *zap.Logger) []*service.Group {
 	logger.Info("Creating groups")
 
 	return []*service.Group{
-		objects.Group,
+		(*service.Group)(objectsGroup),
 	}
 }

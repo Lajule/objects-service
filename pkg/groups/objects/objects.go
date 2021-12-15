@@ -10,26 +10,33 @@ import (
 	"github.com/Lajule/objects-service/pkg/service"
 )
 
-// Group defines the current group
-var Group = &service.Group{
-	Name: "/objects",
-	Routes: []*service.Route{
-		&service.Route{
-			Path:         "/:bucket/:objectID",
-			Method:       http.MethodPut,
-			HandlerFuncs: []gin.HandlerFunc{createOrReplace},
+// Group is an alias to service.Group
+type Group service.Group
+
+// New creates objects group
+func New(logger *zap.Logger) *Group {
+	logger.Info("Creating object group")
+
+	return &Group{
+		Name: "/objects",
+		Routes: []*service.Route{
+			&service.Route{
+				Path:         "/:bucket/:objectID",
+				Method:       http.MethodPut,
+				HandlerFuncs: []gin.HandlerFunc{createOrReplace},
+			},
+			&service.Route{
+				Path:         "/:bucket/:objectID",
+				Method:       http.MethodGet,
+				HandlerFuncs: []gin.HandlerFunc{get},
+			},
+			&service.Route{
+				Path:         "/:bucket/:objectID",
+				Method:       http.MethodDelete,
+				HandlerFuncs: []gin.HandlerFunc{deleteObject},
+			},
 		},
-		&service.Route{
-			Path:         "/:bucket/:objectID",
-			Method:       http.MethodGet,
-			HandlerFuncs: []gin.HandlerFunc{get},
-		},
-		&service.Route{
-			Path:         "/:bucket/:objectID",
-			Method:       http.MethodDelete,
-			HandlerFuncs: []gin.HandlerFunc{deleteObject},
-		},
-	},
+	}
 }
 
 func createOrReplace(c *gin.Context) {

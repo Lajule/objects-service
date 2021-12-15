@@ -8,6 +8,7 @@ package main
 import (
 	"crypto/tls"
 	"github.com/Lajule/objects-service/pkg/groups"
+	"github.com/Lajule/objects-service/pkg/groups/objects"
 	"github.com/Lajule/objects-service/pkg/service"
 	"github.com/Lajule/objects-service/pkg/store"
 	"go.uber.org/zap"
@@ -18,7 +19,8 @@ import (
 
 // InitializeService initializes a new service
 func InitializeService(basePath string, memMapFs bool, tcpAddr *net.TCPAddr, tlsConfig *tls.Config, logger *zap.Logger) *service.Service {
-	v := groups.New(logger)
+	group := objects.New(logger)
+	v := groups.New(group, logger)
 	storeStore := store.New(basePath, memMapFs, logger)
 	serviceService := service.New(tcpAddr, tlsConfig, v, storeStore, logger)
 	return serviceService
