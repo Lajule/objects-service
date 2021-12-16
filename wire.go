@@ -17,6 +17,6 @@ import (
 
 // InitializeService initializes a new service
 func InitializeService(basePath string, memMapFs bool, tcpAddr *net.TCPAddr, tlsConfig *tls.Config, logger *zap.Logger) *service.Service {
-	wire.Build(store.New, groups.Set, service.New)
+	wire.Build(store.NewStore, groups.Set, service.NewService)
 	return &service.Service{}
 }

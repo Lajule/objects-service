@@ -13,8 +13,8 @@ import (
 // Group is an alias to service.Group
 type Group service.Group
 
-// New creates objects group
-func New(logger *zap.Logger) *Group {
+// NewObjects creates objects group
+func NewObjects(logger *zap.Logger) *Group {
 	logger.Info("Creating objects group")
 
 	return &Group{

@@ -9,10 +9,10 @@ import (
 )
 
 // Set is used by wire
-var Set = wire.NewSet(New, objects.New)
+var Set = wire.NewSet(NewGroups, objects.NewObjects)
 
-// New creates all groups
-func New(objectsGroup *objects.Group, logger *zap.Logger) []*service.Group {
+// NewGroups creates all groups
+func NewGroups(objectsGroup *objects.Group, logger *zap.Logger) []*service.Group {
 	logger.Info("Creating groups")
 
 	return []*service.Group{

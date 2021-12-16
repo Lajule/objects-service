@@ -19,9 +19,9 @@ import (
 
 // InitializeService initializes a new service
 func InitializeService(basePath string, memMapFs bool, tcpAddr *net.TCPAddr, tlsConfig *tls.Config, logger *zap.Logger) *service.Service {
-	group := objects.New(logger)
-	v := groups.New(group, logger)
-	storeStore := store.New(basePath, memMapFs, logger)
-	serviceService := service.New(tcpAddr, tlsConfig, v, storeStore, logger)
+	group := objects.NewObjects(logger)
+	v := groups.NewGroups(group, logger)
+	storeStore := store.NewStore(basePath, memMapFs, logger)
+	serviceService := service.NewService(tcpAddr, tlsConfig, v, storeStore, logger)
 	return serviceService
 }

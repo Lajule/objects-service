@@ -15,8 +15,8 @@ type Store struct {
 	logger   *zap.Logger
 }
 
-// New creates a new store
-func New(basePath string, memMapFs bool, logger *zap.Logger) *Store {
+// NewStore creates a new store
+func NewStore(basePath string, memMapFs bool, logger *zap.Logger) *Store {
 	var fs afero.Fs
 
 	logger.Info("Creating store",

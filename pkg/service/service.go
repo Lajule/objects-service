@@ -49,8 +49,8 @@ type Service struct {
 	srv *http.Server
 }
 
-// New creates a new service
-func New(tcpAddr *net.TCPAddr, tlsConfig *tls.Config, groups []*Group, st *store.Store, logger *zap.Logger) *Service {
+// NewService creates a new service
+func NewService(tcpAddr *net.TCPAddr, tlsConfig *tls.Config, groups []*Group, st *store.Store, logger *zap.Logger) *Service {
 	logger.Info("Creating service",
 		zap.String("address", tcpAddr.String()))
 
