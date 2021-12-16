@@ -15,7 +15,7 @@ type Group service.Group
 
 // New creates objects group
 func New(logger *zap.Logger) *Group {
-	logger.Info("Creating object group")
+	logger.Info("Creating objects group")
 
 	return &Group{
 		Name: "/objects",
