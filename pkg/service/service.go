@@ -24,6 +24,9 @@ type Group struct {
 
 	// Routes is the list of routes
 	Routes []*Route
+
+	// SubGroups contains sub groups
+	SubGroups []*Group
 }
 
 // Route contains a HTTP method, a path and a handler function
@@ -66,21 +69,7 @@ func NewService(tcpAddr *net.TCPAddr, tlsConfig *tls.Config, groups []*Group, st
 		c.Set("service", service)
 	})
 
-	for _, group := range groups {
-		value := reflect.ValueOf(engine.Group(group.Name))
-		for _, route := range group.Routes {
-			in := []reflect.Value{
-				reflect.ValueOf(route.Path),
-			}
-
-			for _, handlerFunc := range route.HandlerFuncs {
-				in = append(in, reflect.ValueOf(handlerFunc))
-			}
-
-			f := value.MethodByName(route.Method)
-			f.Call(in)
-		}
-	}
+	walkthroughGroups(engine, groups)
 
 	service.srv = &http.Server{
 		Addr:      tcpAddr.String(),
@@ -119,4 +108,26 @@ func (s *Service) Start(clientCert, clientKey string) {
 	}
 
 	s.Logger.Info("Service exiting")
+}
+
+func walkthroughGroups(engine *gin.Engine, groups []*Group) {
+	for _, group := range groups {
+		value := reflect.ValueOf(engine.Group(group.Name))
+		for _, route := range group.Routes {
+			in := []reflect.Value{
+				reflect.ValueOf(route.Path),
+			}
+
+			for _, handlerFunc := range route.HandlerFuncs {
+				in = append(in, reflect.ValueOf(handlerFunc))
+			}
+
+			f := value.MethodByName(route.Method)
+			f.Call(in)
+		}
+
+		if group.SubGroups != nil {
+			walkthroughGroups(engine, group.SubGroups)
+		}
+	}
 }
