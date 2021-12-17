@@ -17,10 +17,13 @@ import (
 	"github.com/Lajule/objects-service/pkg/store"
 )
 
-// Group is router group
+// Group is a router group
 type Group struct {
 	// Name is the name of router group
 	Name string
+
+	// Middlewares contains the router group middlewares
+	Middlewares []gin.HandlerFunc
 
 	// Routes is the list of routes
 	Routes []*Route
@@ -69,7 +72,7 @@ func NewService(tcpAddr *net.TCPAddr, tlsConfig *tls.Config, groups []*Group, st
 		c.Set("service", service)
 	})
 
-	walkthroughGroups(engine, groups)
+	walkthroughGroups(engine.Group("/"), groups)
 
 	service.srv = &http.Server{
 		Addr:      tcpAddr.String(),
@@ -110,9 +113,17 @@ func (s *Service) Start(clientCert, clientKey string) {
 	s.Logger.Info("Service exiting")
 }
 
-func walkthroughGroups(engine *gin.Engine, groups []*Group) {
+func walkthroughGroups(root *gin.RouterGroup, groups []*Group) {
 	for _, group := range groups {
-		value := reflect.ValueOf(engine.Group(group.Name))
+		routerGroup := root.Group(group.Name)
+
+		if group.Middlewares != nil {
+			for _, middleware := range group.Middlewares {
+				routerGroup.Use(middleware)
+			}
+		}
+
+		value := reflect.ValueOf(routerGroup)
 		for _, route := range group.Routes {
 			in := []reflect.Value{
 				reflect.ValueOf(route.Path),
@@ -127,7 +138,7 @@ func walkthroughGroups(engine *gin.Engine, groups []*Group) {
 		}
 
 		if group.SubGroups != nil {
-			walkthroughGroups(engine, group.SubGroups)
+			walkthroughGroups(routerGroup, group.SubGroups)
 		}
 	}
 }
