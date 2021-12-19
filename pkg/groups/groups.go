@@ -2,7 +2,6 @@ package groups
 
 import (
 	"github.com/google/wire"
-	"go.uber.org/zap"
 
 	"github.com/Lajule/objects-service/pkg/groups/objects"
 	"github.com/Lajule/objects-service/pkg/service"
@@ -12,9 +11,7 @@ import (
 var Set = wire.NewSet(NewGroups, objects.NewObjects)
 
 // NewGroups creates all groups
-func NewGroups(objectsGroup *objects.Group, logger *zap.Logger) []*service.Group {
-	logger.Info("Creating groups")
-
+func NewGroups(objectsGroup *objects.Group) []*service.Group {
 	return []*service.Group{
 		(*service.Group)(objectsGroup),
 	}

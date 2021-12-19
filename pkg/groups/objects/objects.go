@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 
+	"github.com/Lajule/objects-service/pkg/middlewares"
 	"github.com/Lajule/objects-service/pkg/service"
 )
 
@@ -14,11 +15,10 @@ import (
 type Group service.Group
 
 // NewObjects creates objects group
-func NewObjects(logger *zap.Logger) *Group {
-	logger.Info("Creating objects group")
-
+func NewObjects(requestLogger middlewares.Logger) *Group {
 	return &Group{
-		Name: "/objects",
+		Name:        "/objects",
+		Middlewares: []gin.HandlerFunc{gin.HandlerFunc(requestLogger)},
 		Routes: []*service.Route{
 			&service.Route{
 				Path:         "/:bucket/:objectID",
