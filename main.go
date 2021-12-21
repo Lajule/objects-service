@@ -3,55 +3,48 @@ package main
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"flag"
 	"net"
 	"os"
 
+	"github.com/alexflint/go-arg"
 	"go.uber.org/zap"
 )
+
+// Args contains command line arguments
+type Args struct {
+	BasePath   string `arg:"--base-path" default:"./data" help:"Directory that contains buckets"`
+	MemMapFs   bool   `arg:"--mem-map-fs" help:"Use memory backed filesystem"`
+	BindAddr   string `arg:"--bind-addr" default:":8080" help:"Use specified network interface"`
+	CACert     string `arg:"--ca-cert" help:"File that contains list of trusted SSL Certificate Authorities"`
+	ClientCert string `arg:"--client-cert" help:"File that contains X.509 certificate"`
+	ClientKey  string `arg:"--client-key" help:"File that contains X.509 key"`
+}
 
 var (
 	// Version contains the program version.
 	Version = "development"
-
-	// BasePath is the directory that contains buckets
-	BasePath = flag.String("base-path", "./data", "Directory that contains buckets")
-
-	// MemMapFs allows to store objects in memory
-	MemMapFs = flag.Bool("mem-map-fs", false, "Use memory backed filesystem")
-
-	// BindAddr is the network interface
-	BindAddr = flag.String("bind-addr", ":8080", "Use specified network interface")
-
-	// CACert is the file that contains list of trusted SSL Certificate Authorities
-	CACert = flag.String("ca-cert", "", "File that contains list of trusted SSL Certificate Authorities")
-
-	// ClientCert is the file that contains X.509 certificate
-	ClientCert = flag.String("client-cert", "", "File that contains X.509 certificate")
-
-	// ClientKey is the file that contains X.509 key
-	ClientKey = flag.String("client-key", "", "File that contains X.509 key")
 )
 
 func main() {
-	flag.Parse()
+	args := Args{}
+	arg.MustParse(&args)
 
 	logger, _ := zap.NewProduction()
 	defer logger.Sync()
 
 	logger.Info("objects-service", zap.String("version", Version))
 
-	tcpAddr, err := net.ResolveTCPAddr("tcp", *BindAddr)
+	tcpAddr, err := net.ResolveTCPAddr("tcp", args.BindAddr)
 	if err != nil {
 		logger.Fatal(err.Error())
 	}
 
 	var tlsConfig *tls.Config
 
-	if len(*CACert) > 0 {
+	if len(args.CACert) > 0 {
 		pool := x509.NewCertPool()
 
-		data, err := os.ReadFile(*CACert)
+		data, err := os.ReadFile(args.CACert)
 		if err != nil {
 			logger.Fatal(err.Error())
 		}
@@ -67,6 +60,6 @@ func main() {
 		}
 	}
 
-	srv := InitializeService(*BasePath, *MemMapFs, tcpAddr, tlsConfig, logger)
-	srv.Start(*ClientCert, *ClientKey)
+	srv := InitializeService(args.BasePath, args.MemMapFs, tcpAddr, tlsConfig, logger)
+	srv.Start(args.ClientCert, args.ClientKey)
 }

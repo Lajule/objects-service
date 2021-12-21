@@ -7,7 +7,7 @@ An HTTP service that is able to store objects organized by buckets. This service
 Build the service with:
 
 ```sh
-go build
+go build -ldflags="-s -X 'main.Version=0.1.0'"
 ```
 
 > The service use [Wire][3] automated initialization.
@@ -16,19 +16,20 @@ go build
 
 ```
 ./objects-service -h
-Usage of ./objects-service:
-  -base-path string
-        Directory that contains buckets (default "./data")
-  -bind-addr string
-        Use specified network interface (default ":8080")
-  -ca-cert string
-        File that contains list of trusted SSL Certificate Authorities
-  -client-cert string
-        File that contains X.509 certificate
-  -client-key string
-        File that contains X.509 key
-  -mem-map-fs
-        Use memory backed filesystem
+Usage: objects-service [--base-path BASE-PATH] [--mem-map-fs] [--bind-addr BIND-ADDR] [--ca-cert CA-CERT] [--client-cert CLIENT-CERT] [--client-key CLIENT-KEY]
+
+Options:
+  --base-path BASE-PATH
+                         Directory that contains buckets [default: ./data]
+  --mem-map-fs           Use memory backed filesystem
+  --bind-addr BIND-ADDR
+                         Use specified network interface [default: :8080]
+  --ca-cert CA-CERT      File that contains list of trusted SSL Certificate Authorities
+  --client-cert CLIENT-CERT
+                         File that contains X.509 certificate
+  --client-key CLIENT-KEY
+                         File that contains X.509 key
+  --help, -h             display this help and exit
 ```
 
 [1]: https://github.com/gin-gonic/gin
