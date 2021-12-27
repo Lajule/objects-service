@@ -48,32 +48,32 @@ func createOrReplace(c *gin.Context) {
 	defer c.Request.Body.Close()
 	data, err := io.ReadAll(c.Request.Body)
 	if err != nil {
-		s.Logger.Error("Can not read request body", zap.Error(err))
+		s.Logger.Error("can not read request body", zap.Error(err))
 		c.Status(http.StatusInternalServerError)
 		return
 	}
 
-	s.Logger.Info("Creating object",
+	s.Logger.Info("creating object",
 		zap.String("bucket", bucket),
 		zap.String("objectID", objectID),
 		zap.ByteString("data", data))
 
 	if err := s.Store.CreateBucketIfNotExists(bucket); err != nil {
-		s.Logger.Error("Can not create bucket if not exists", zap.Error(err))
+		s.Logger.Error("can not create bucket if not exists", zap.Error(err))
 		c.Status(http.StatusInternalServerError)
 		return
 	}
 
 	object, err := s.Store.CreateOrOpenObject(bucket, objectID)
 	if err != nil {
-		s.Logger.Error("Can not create or open object", zap.Error(err))
+		s.Logger.Error("can not create or open object", zap.Error(err))
 		c.Status(http.StatusInternalServerError)
 		return
 	}
 
 	defer object.Close()
 	if _, err := object.WriteString(string(data)); err != nil {
-		s.Logger.Error("Can not write object", zap.Error(err))
+		s.Logger.Error("can not write object", zap.Error(err))
 		c.Status(http.StatusInternalServerError)
 		return
 	}
@@ -91,19 +91,19 @@ func get(c *gin.Context) {
 	bucket := c.Param("bucket")
 	objectID := c.Param("objectID")
 
-	s.Logger.Info("Getting object",
+	s.Logger.Info("getting object",
 		zap.String("bucket", bucket),
 		zap.String("objectID", objectID))
 
 	object, err := s.Store.GetObjectIfExists(bucket, objectID)
 	if err != nil {
-		s.Logger.Error("Can not get object if exists", zap.Error(err))
+		s.Logger.Error("can not get object if exists", zap.Error(err))
 		c.Status(http.StatusInternalServerError)
 		return
 	}
 
 	if object == nil {
-		s.Logger.Info("Object not exists")
+		s.Logger.Info("object not exists")
 		c.Status(http.StatusNotFound)
 		return
 	}
@@ -111,7 +111,7 @@ func get(c *gin.Context) {
 	defer object.Close()
 	data, err := io.ReadAll(object)
 	if err != nil {
-		s.Logger.Error("Can not read object", zap.Error(err))
+		s.Logger.Error("can not read object", zap.Error(err))
 		c.Status(http.StatusInternalServerError)
 		return
 	}
@@ -125,19 +125,19 @@ func deleteObject(c *gin.Context) {
 	bucket := c.Param("bucket")
 	objectID := c.Param("objectID")
 
-	s.Logger.Info("Deleting object",
+	s.Logger.Info("deleting object",
 		zap.String("bucket", bucket),
 		zap.String("objectID", objectID))
 
 	removed, err := s.Store.RemoveObjectIfExists(bucket, objectID)
 	if err != nil {
-		s.Logger.Error("Can not remove object if exists", zap.Error(err))
+		s.Logger.Error("can not remove object if exists", zap.Error(err))
 		c.Status(http.StatusInternalServerError)
 		return
 	}
 
 	if !removed {
-		s.Logger.Info("Object not exists")
+		s.Logger.Info("object not exists")
 		c.Status(http.StatusNotFound)
 		return
 	}

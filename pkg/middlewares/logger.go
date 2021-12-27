@@ -12,7 +12,7 @@ type Logger gin.HandlerFunc
 
 // NewLogger creates a logger
 func NewLogger(logger *zap.Logger) Logger {
-	logger.Info("Creating logger")
+	logger.Info("creating logger")
 
 	namedLogger := logger.Named("logger")
 
@@ -21,7 +21,7 @@ func NewLogger(logger *zap.Logger) Logger {
 		c.Next()
 		timeStamp := time.Now()
 
-		namedLogger.Info("Request",
+		namedLogger.Info("request handled",
 			zap.String("path", c.Request.URL.Path),
 			zap.String("raw_query", c.Request.URL.RawQuery),
 			zap.String("full_path", c.FullPath()),

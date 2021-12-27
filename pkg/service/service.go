@@ -57,7 +57,7 @@ type Service struct {
 
 // NewService creates a new service
 func NewService(tcpAddr *net.TCPAddr, tlsConfig *tls.Config, groups []*Group, st *store.Store, logger *zap.Logger) *Service {
-	logger.Info("Creating service",
+	logger.Info("creating service",
 		zap.String("address", tcpAddr.String()))
 
 	service := &Service{
@@ -85,7 +85,7 @@ func NewService(tcpAddr *net.TCPAddr, tlsConfig *tls.Config, groups []*Group, st
 
 // Start starts HTTP service
 func (s *Service) Start(clientCert, clientKey string) {
-	s.Logger.Info("Service starting")
+	s.Logger.Info("service starting")
 
 	go func() {
 		var err error
@@ -95,22 +95,22 @@ func (s *Service) Start(clientCert, clientKey string) {
 			err = s.srv.ListenAndServe()
 		}
 		if err != nil && err != http.ErrServerClosed {
-			s.Logger.Fatal("Service not listening", zap.Error(err))
+			s.Logger.Fatal("service not listening", zap.Error(err))
 		}
 	}()
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
-	s.Logger.Info("Shutting down service...")
+	s.Logger.Info("shutting down service...")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if err := s.srv.Shutdown(ctx); err != nil {
-		s.Logger.Fatal("Service forced to shutdown", zap.Error(err))
+		s.Logger.Fatal("service forced to shutdown", zap.Error(err))
 	}
 
-	s.Logger.Info("Service exiting")
+	s.Logger.Info("service exiting")
 }
 
 func walkthroughGroups(root *gin.RouterGroup, groups []*Group) {

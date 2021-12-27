@@ -36,7 +36,7 @@ func main() {
 
 	tcpAddr, err := net.ResolveTCPAddr("tcp", args.BindAddr)
 	if err != nil {
-		logger.Fatal(err.Error())
+		logger.Fatal("failed to resolve TCP address", zap.Error(err))
 	}
 
 	var tlsConfig *tls.Config
@@ -46,7 +46,7 @@ func main() {
 
 		data, err := os.ReadFile(args.CACert)
 		if err != nil {
-			logger.Fatal(err.Error())
+			logger.Fatal("can not open trusted SSL Certificate Authorities file", zap.Error(err))
 		}
 
 		if !pool.AppendCertsFromPEM(data) {
