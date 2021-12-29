@@ -15,8 +15,8 @@ import (
 // Group is an alias to service.Group
 type Group service.Group
 
-// GroupParams contains group's params
-type GroupParams struct {
+// Params contains group's params
+type Params struct {
 	// Logger gives access to logger
 	Logger *zap.Logger
 
@@ -46,7 +46,7 @@ func NewObjects(requestLogger middlewares.Logger, st *store.Store, logger *zap.L
 				HandlerFuncs: []gin.HandlerFunc{deleteObject},
 			},
 		},
-		Params: &GroupParams{
+		Params: &Params{
 			Logger: logger.Named("objects"),
 			Store:  st,
 		},
@@ -54,7 +54,7 @@ func NewObjects(requestLogger middlewares.Logger, st *store.Store, logger *zap.L
 }
 
 func createOrReplace(c *gin.Context) {
-	params := c.MustGet("params").(*GroupParams)
+	params := c.MustGet("params").(*Params)
 
 	bucket := c.Param("bucket")
 	objectID := c.Param("objectID")
@@ -100,7 +100,7 @@ func createOrReplace(c *gin.Context) {
 }
 
 func get(c *gin.Context) {
-	params := c.MustGet("params").(*GroupParams)
+	params := c.MustGet("params").(*Params)
 
 	bucket := c.Param("bucket")
 	objectID := c.Param("objectID")
@@ -134,7 +134,7 @@ func get(c *gin.Context) {
 }
 
 func deleteObject(c *gin.Context) {
-	params := c.MustGet("params").(*GroupParams)
+	params := c.MustGet("params").(*Params)
 
 	bucket := c.Param("bucket")
 	objectID := c.Param("objectID")
