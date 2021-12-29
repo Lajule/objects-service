@@ -11,6 +11,7 @@ require (
 
 require (
 	github.com/alexflint/go-arg v1.4.2
+	github.com/matryer/is v1.4.0
 	golang.org/x/sys v0.0.0-20210809222454-d867a43fc93e // indirect
 	golang.org/x/text v0.3.6 // indirect
 )
