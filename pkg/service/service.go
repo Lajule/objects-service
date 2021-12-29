@@ -30,6 +30,9 @@ type Group struct {
 
 	// SubGroups contains sub groups
 	SubGroups []*Group
+
+	// Logger gives access to logger
+	Logger *zap.Logger
 }
 
 // Route contains a HTTP method, a path and a handler function
@@ -46,13 +49,8 @@ type Route struct {
 
 // Service contains an HTTP server and a store
 type Service struct {
-	// Store gives access to object store
-	Store *store.Store
-
-	// Logger gives access to logger
-	Logger *zap.Logger
-
-	srv *http.Server
+	srv    *http.Server
+	logger *zap.Logger
 }
 
 // NewService creates a new service
@@ -61,15 +59,14 @@ func NewService(tcpAddr *net.TCPAddr, tlsConfig *tls.Config, groups []*Group, st
 		zap.String("address", tcpAddr.String()))
 
 	service := &Service{
-		Store:  st,
-		Logger: logger.Named("service"),
+		logger: logger.Named("service"),
 	}
 
 	gin.SetMode(gin.ReleaseMode)
 	engine := gin.New()
 
 	engine.Use(func(c *gin.Context) {
-		c.Set("service", service)
+		c.Set("store", st)
 	})
 
 	walkthroughGroups(engine.Group("/"), groups)
@@ -85,7 +82,7 @@ func NewService(tcpAddr *net.TCPAddr, tlsConfig *tls.Config, groups []*Group, st
 
 // Start starts HTTP service
 func (s *Service) Start(clientCert, clientKey string) {
-	s.Logger.Info("service starting")
+	s.logger.Info("service starting")
 
 	go func() {
 		var err error
@@ -95,27 +92,31 @@ func (s *Service) Start(clientCert, clientKey string) {
 			err = s.srv.ListenAndServe()
 		}
 		if err != nil && err != http.ErrServerClosed {
-			s.Logger.Fatal("service not listening", zap.Error(err))
+			s.logger.Fatal("service not listening", zap.Error(err))
 		}
 	}()
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
-	s.Logger.Info("shutting down service...")
+	s.logger.Info("shutting down service...")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if err := s.srv.Shutdown(ctx); err != nil {
-		s.Logger.Fatal("service forced to shutdown", zap.Error(err))
+		s.logger.Fatal("service forced to shutdown", zap.Error(err))
 	}
 
-	s.Logger.Info("service exiting")
+	s.logger.Info("service exiting")
 }
 
 func walkthroughGroups(root *gin.RouterGroup, groups []*Group) {
 	for _, group := range groups {
 		routerGroup := root.Group(group.Name)
+
+		routerGroup.Use(func(c *gin.Context) {
+			c.Set("logger", group.Logger)
+		})
 
 		if group.Middlewares != nil {
 			for _, middleware := range group.Middlewares {

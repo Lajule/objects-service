@@ -9,13 +9,14 @@ import (
 
 	"github.com/Lajule/objects-service/pkg/middlewares"
 	"github.com/Lajule/objects-service/pkg/service"
+	"github.com/Lajule/objects-service/pkg/store"
 )
 
 // Group is an alias to service.Group
 type Group service.Group
 
 // NewObjects creates objects group
-func NewObjects(requestLogger middlewares.Logger) *Group {
+func NewObjects(requestLogger middlewares.Logger, logger *zap.Logger) *Group {
 	return &Group{
 		Name:        "/objects",
 		Middlewares: []gin.HandlerFunc{gin.HandlerFunc(requestLogger)},
@@ -36,11 +37,13 @@ func NewObjects(requestLogger middlewares.Logger) *Group {
 				HandlerFuncs: []gin.HandlerFunc{deleteObject},
 			},
 		},
+		Logger: logger.Named("objects"),
 	}
 }
 
 func createOrReplace(c *gin.Context) {
-	s := c.MustGet("service").(*service.Service)
+	logger := c.MustGet("logger").(*zap.Logger)
+	st := c.MustGet("store").(*store.Store)
 
 	bucket := c.Param("bucket")
 	objectID := c.Param("objectID")
@@ -48,32 +51,32 @@ func createOrReplace(c *gin.Context) {
 	defer c.Request.Body.Close()
 	data, err := io.ReadAll(c.Request.Body)
 	if err != nil {
-		s.Logger.Error("can not read request body", zap.Error(err))
+		logger.Error("can not read request body", zap.Error(err))
 		c.Status(http.StatusInternalServerError)
 		return
 	}
 
-	s.Logger.Info("creating object",
+	logger.Info("creating object",
 		zap.String("bucket", bucket),
 		zap.String("objectID", objectID),
 		zap.ByteString("data", data))
 
-	if err := s.Store.CreateBucketIfNotExists(bucket); err != nil {
-		s.Logger.Error("can not create bucket if not exists", zap.Error(err))
+	if err := st.CreateBucketIfNotExists(bucket); err != nil {
+		logger.Error("can not create bucket if not exists", zap.Error(err))
 		c.Status(http.StatusInternalServerError)
 		return
 	}
 
-	object, err := s.Store.CreateOrOpenObject(bucket, objectID)
+	object, err := st.CreateOrOpenObject(bucket, objectID)
 	if err != nil {
-		s.Logger.Error("can not create or open object", zap.Error(err))
+		logger.Error("can not create or open object", zap.Error(err))
 		c.Status(http.StatusInternalServerError)
 		return
 	}
 
 	defer object.Close()
 	if _, err := object.WriteString(string(data)); err != nil {
-		s.Logger.Error("can not write object", zap.Error(err))
+		logger.Error("can not write object", zap.Error(err))
 		c.Status(http.StatusInternalServerError)
 		return
 	}
@@ -86,24 +89,25 @@ func createOrReplace(c *gin.Context) {
 }
 
 func get(c *gin.Context) {
-	s := c.MustGet("service").(*service.Service)
+	logger := c.MustGet("logger").(*zap.Logger)
+	st := c.MustGet("store").(*store.Store)
 
 	bucket := c.Param("bucket")
 	objectID := c.Param("objectID")
 
-	s.Logger.Info("getting object",
+	logger.Info("getting object",
 		zap.String("bucket", bucket),
 		zap.String("objectID", objectID))
 
-	object, err := s.Store.GetObjectIfExists(bucket, objectID)
+	object, err := st.GetObjectIfExists(bucket, objectID)
 	if err != nil {
-		s.Logger.Error("can not get object if exists", zap.Error(err))
+		logger.Error("can not get object if exists", zap.Error(err))
 		c.Status(http.StatusInternalServerError)
 		return
 	}
 
 	if object == nil {
-		s.Logger.Info("object not exists")
+		logger.Info("object not exists")
 		c.Status(http.StatusNotFound)
 		return
 	}
@@ -111,7 +115,7 @@ func get(c *gin.Context) {
 	defer object.Close()
 	data, err := io.ReadAll(object)
 	if err != nil {
-		s.Logger.Error("can not read object", zap.Error(err))
+		logger.Error("can not read object", zap.Error(err))
 		c.Status(http.StatusInternalServerError)
 		return
 	}
@@ -120,24 +124,25 @@ func get(c *gin.Context) {
 }
 
 func deleteObject(c *gin.Context) {
-	s := c.MustGet("service").(*service.Service)
+	logger := c.MustGet("logger").(*zap.Logger)
+	st := c.MustGet("store").(*store.Store)
 
 	bucket := c.Param("bucket")
 	objectID := c.Param("objectID")
 
-	s.Logger.Info("deleting object",
+	logger.Info("deleting object",
 		zap.String("bucket", bucket),
 		zap.String("objectID", objectID))
 
-	removed, err := s.Store.RemoveObjectIfExists(bucket, objectID)
+	removed, err := st.RemoveObjectIfExists(bucket, objectID)
 	if err != nil {
-		s.Logger.Error("can not remove object if exists", zap.Error(err))
+		logger.Error("can not remove object if exists", zap.Error(err))
 		c.Status(http.StatusInternalServerError)
 		return
 	}
 
 	if !removed {
-		s.Logger.Info("object not exists")
+		logger.Info("object not exists")
 		c.Status(http.StatusNotFound)
 		return
 	}
