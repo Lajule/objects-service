@@ -13,8 +13,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
-
-	"github.com/Lajule/objects-service/pkg/store"
 )
 
 // Group is a router group
@@ -31,8 +29,8 @@ type Group struct {
 	// SubGroups contains sub groups
 	SubGroups []*Group
 
-	// Logger gives access to logger
-	Logger *zap.Logger
+	// Params gives access to params
+	Params interface{}
 }
 
 // Route contains a HTTP method, a path and a handler function
@@ -54,7 +52,7 @@ type Service struct {
 }
 
 // NewService creates a new service
-func NewService(tcpAddr *net.TCPAddr, tlsConfig *tls.Config, groups []*Group, st *store.Store, logger *zap.Logger) *Service {
+func NewService(tcpAddr *net.TCPAddr, tlsConfig *tls.Config, groups []*Group, logger *zap.Logger) *Service {
 	logger.Info("creating service",
 		zap.String("address", tcpAddr.String()))
 
@@ -64,10 +62,6 @@ func NewService(tcpAddr *net.TCPAddr, tlsConfig *tls.Config, groups []*Group, st
 
 	gin.SetMode(gin.ReleaseMode)
 	engine := gin.New()
-
-	engine.Use(func(c *gin.Context) {
-		c.Set("store", st)
-	})
 
 	walkthroughGroups(engine.Group("/"), groups)
 
@@ -115,7 +109,7 @@ func walkthroughGroups(root *gin.RouterGroup, groups []*Group) {
 		routerGroup := root.Group(group.Name)
 
 		routerGroup.Use(func(c *gin.Context) {
-			c.Set("logger", group.Logger)
+			c.Set("params", group.Params)
 		})
 
 		if group.Middlewares != nil {
