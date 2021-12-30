@@ -19,13 +19,13 @@ func NewLogger(logger *zap.Logger) Logger {
 	return func(c *gin.Context) {
 		start := time.Now()
 		c.Next()
-		timeStamp := time.Now()
+		timestamp := time.Now()
 
 		namedLogger.Info("request handled",
 			zap.String("path", c.Request.URL.Path),
 			zap.String("raw_query", c.Request.URL.RawQuery),
 			zap.String("full_path", c.FullPath()),
-			zap.Duration("latency", timeStamp.Sub(start)),
+			zap.Duration("latency", timestamp.Sub(start)),
 			zap.String("client_ip", c.ClientIP()),
 			zap.String("method", c.Request.Method),
 			zap.Int("status", c.Writer.Status()),
