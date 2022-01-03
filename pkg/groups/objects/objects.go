@@ -63,7 +63,7 @@ func createOrReplace(c *gin.Context) {
 	data, err := io.ReadAll(c.Request.Body)
 	if err != nil {
 		params.Logger.Error("can not read request body", zap.Error(err))
-		c.Status(http.StatusInternalServerError)
+		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 
@@ -74,21 +74,21 @@ func createOrReplace(c *gin.Context) {
 
 	if err := params.Store.CreateBucketIfNotExists(bucket); err != nil {
 		params.Logger.Error("can not create bucket if not exists", zap.Error(err))
-		c.Status(http.StatusInternalServerError)
+		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 
 	object, err := params.Store.CreateOrOpenObject(bucket, objectID)
 	if err != nil {
 		params.Logger.Error("can not create or open object", zap.Error(err))
-		c.Status(http.StatusInternalServerError)
+		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 
 	defer object.Close()
 	if _, err := object.WriteString(string(data)); err != nil {
 		params.Logger.Error("can not write object", zap.Error(err))
-		c.Status(http.StatusInternalServerError)
+		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 
@@ -112,7 +112,7 @@ func get(c *gin.Context) {
 	object, err := params.Store.GetObjectIfExists(bucket, objectID)
 	if err != nil {
 		params.Logger.Error("can not get object if exists", zap.Error(err))
-		c.Status(http.StatusInternalServerError)
+		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 
@@ -126,7 +126,7 @@ func get(c *gin.Context) {
 	data, err := io.ReadAll(object)
 	if err != nil {
 		params.Logger.Error("can not read object", zap.Error(err))
-		c.Status(http.StatusInternalServerError)
+		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 
@@ -146,7 +146,7 @@ func deleteObject(c *gin.Context) {
 	removed, err := params.Store.RemoveObjectIfExists(bucket, objectID)
 	if err != nil {
 		params.Logger.Error("can not remove object if exists", zap.Error(err))
-		c.Status(http.StatusInternalServerError)
+		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 
